@@ -4,8 +4,9 @@ import {mount as dodge} from './games/dodge';
 import {mount as claw} from './games/claw';
 import {mount as ttt} from './games/tictactoe';
 import {mount as memory} from './games/memory';
+import {mount as snake} from './games/snake';
 export type Cleanup=()=>void;
-const games=[{id:'dodge',icon:'🚀',title:'Desvie!',subtitle:'Arcade clássico',mount:dodge},{id:'claw',icon:'🧸',title:'Máquina de garra',subtitle:'Prêmios virtuais',mount:claw},{id:'ttt',icon:'🎲',title:'Jogo da velha',subtitle:'Computador ou amigo',mount:ttt},{id:'memory',icon:'🃏',title:'Memória',subtitle:'Cartas e pares',mount:memory}];
+const games=[{id:'dodge',icon:'🚀',title:'Desvie!',subtitle:'Arcade clássico',mount:dodge},{id:'claw',icon:'🧸',title:'Máquina de garra',subtitle:'Prêmios virtuais',mount:claw},{id:'ttt',icon:'🎲',title:'Jogo da velha',subtitle:'Computador ou amigo',mount:ttt},{id:'memory',icon:'🃏',title:'Memória',subtitle:'Cartas e pares',mount:memory},{id:'snake',icon:'🐍',title:'Cobrinha',subtitle:'Arcade clássico · GameZ',mount:snake}];
 const app=document.querySelector<HTMLDivElement>('#app')!;
 let cleanup:Cleanup|undefined;
 function header(){return `<header><button class="back" id="back" aria-label="Voltar ao menu">←</button><div class="brand">🌈 Joyfliper</div><div class="wallet">🪙 <span id="coins">${save.coins}</span></div></header>`;}
