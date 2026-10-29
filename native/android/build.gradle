@@ -1,4 +1,9 @@
 plugins { id 'com.android.application' }
+
+configurations {
+    natives
+}
+
 android {
     namespace 'br.com.joyfliper'
     compileSdk 35
@@ -6,15 +11,54 @@ android {
         applicationId 'br.com.joyfliper'
         minSdk 24
         targetSdk 35
-        versionCode 1
-        versionName '0.1.0'
+        versionCode 2
+        versionName '0.1.1'
     }
-    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    sourceSets.main.jniLibs.srcDirs += ["$buildDir/generated/jniLibs"]
 }
+
 dependencies {
     implementation project(':core')
     implementation "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
-    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
-    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
-    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
+}
+
+tasks.register('extractGdxNatives') {
+    def outputDir = layout.buildDirectory.dir('generated/jniLibs')
+    outputs.dir(outputDir)
+    doLast {
+        def mappings = [
+            'natives-armeabi-v7a': 'armeabi-v7a',
+            'natives-arm64-v8a': 'arm64-v8a',
+            'natives-x86_64': 'x86_64'
+        ]
+        configurations.natives.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+            def classifier = artifact.classifier
+            def abi = mappings[classifier]
+            if (abi == null) {
+                throw new GradleException("Unknown native classifier: $classifier")
+            }
+            copy {
+                from zipTree(artifact.file)
+                include '*.so'
+                into outputDir.get().dir(abi).asFile
+            }
+        }
+        mappings.values().each { abi ->
+            def folder = outputDir.get().dir(abi).asFile
+            if (!folder.exists() || !folder.listFiles()?.any { it.name.endsWith('.so') }) {
+                throw new GradleException("Missing libGDX .so files for $abi")
+            }
+        }
+    }
+}
+
+tasks.named('preBuild').configure {
+    dependsOn tasks.named('extractGdxNatives')
 }
